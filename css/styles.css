@@ -1,5 +1,5 @@
 @font-face{
-  font-family:'digital';
+  font-family: 'digital';
   src: url('../fonts/digital-7.ttf');
 }
 
@@ -8,36 +8,45 @@ html, body {
   margin: 0;
 }
 
+h1 {
+  font-family: 'digital';
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
 
 .container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
   height: 100%;
 }                         
 
 .calculator {
-  /* background-color: black; */
+  background: linear-gradient(145deg, #e6e6e6, #ffffff);
+  box-shadow: 5px 5px 15px #bebebe, -5px -5px 15px #ffffff;
+  border-radius: 5px;
+
   width: 300px;
-  height: 500px;
+  height: 465px;
   display: flex;
   flex-direction: column;
 }
 
 .screen {
-  background-color: gray;
+  background-color: #f2f2f2;
+  box-shadow: inset 0px 0px 5px #d1d1d1;
+  border-radius: 5px;
+
+  padding-bottom: 5px;
   width: 100%;
-  height: 20%;
+  height: 95px;
   display: flex;
   flex-direction: column;
 }
 
 .screen div {
-  /* flex: 1;
-  display: flex;
-  align-items: end;
-  justify-content: end; */
   font-family: 'digital';
   font-size: 60px;
 }
@@ -66,29 +75,43 @@ html, body {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
+  height: 370px;
 }
 
 .button {
+  background: linear-gradient(145deg, #8db596, #a2c7a9);
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px #7d9c89, -2px -2px 5px #b9e3b6;
+  transition: background 0.3s, box-shadow 0.3s;
+
   width: 75px;
   height: 75px;
-  background-color: green;
   display: flex;
   justify-content: center;
   align-items: center;
   border: none;
-  transition: filter 0.3s;
   font-family: 'digital';
   font-size: 60px;
 }
 
 .button:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.1);
 }
 
 .button:active {
-  filter: brightness(0.9);
+  background: linear-gradient(145deg, #a2c7a9, #8db596);
 }
 
 .non-digit {
   font-size: 30px;
 }
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  font-family: 'digital';
+ }

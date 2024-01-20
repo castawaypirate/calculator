@@ -67,10 +67,17 @@ let a = new CalculatorNumber();
 let b = new CalculatorNumber();
 let operator;
 
+const minFontSize = 40;
+const maxFontSize = 60;
+
+const standardIconFontSize = 30;
+
 
 function pressed() {
     const lower = document.querySelector(".lower-half");
     const upper = document.querySelector(".upper-half");
+
+    let lowerFontSize = parseInt(getCssStyle(lower, 'font-size'), 10);
 
     if(this.value === "clear") {
         a.clearValue();
@@ -82,7 +89,7 @@ function pressed() {
 
     if(this.value === "delete") {
         // delete the last digit's operator along with it
-        if(b.getValue() < 0 && lower.textContent.length === 2) {
+        if(b.getValue() < 0 && lower.textContent.length === 1) {
             lower.innerHTML = "0";
             b.clearValue();
         } else {
@@ -94,7 +101,7 @@ function pressed() {
                 if(lower.textContent.slice(-1) !== ".") {
                     b.decimalPart = b.decimalPart.slice(0, -1);
                 }
-                lower.textContent = lower.textContent.slice(0, -1);            
+                lower.innerHTML = lower.innerHTML.slice(0, -1);            
             } else {
                 // if there is only one digit replace it with 0 else operate delete normally
                 if(lower.textContent.length === 1) {
@@ -102,7 +109,7 @@ function pressed() {
                     lower.textContent = "0";
                 } else {
                     b.integerPart = b.integerPart.slice(0, -1);
-                    lower.textContent = lower.textContent.slice(0, -1);
+                    lower.innerHTML = lower.innerHTML.slice(0, -1);
                 }
             }
         }
@@ -110,27 +117,23 @@ function pressed() {
 
     if(this.value === "digit") {
         // disable dot button when there is already the dot in b
-        if(lower.textContent.includes(".") && this.digit === ".") {
+        if((lower.textContent.includes(".") && this.digit === ".") || (lowerFontSize === minFontSize)) {
             return;
         } else {
-            // 9 characters is the maximum characters the screen can fit
-            if(b.getValue().toString().length < 9) {
-                // if b is 0 and pressed digit is not the dot replace 0 with it
-                if(lower.textContent === "0" && this.digit !== ".") {
-                    lower.textContent = this.digit;
-                    b.integerPart = this.digit;
-                } else {
-                    if(this.digit !== ".") {
-                        // if there is the dot add to demicalPart else to integerPart
-                        if(lower.textContent.includes(".")) {
-                            b.decimalPart += this.digit;
-                        } else {
-                            b.integerPart += this.digit;
-                        }
+            // if b is 0 and pressed digit is not the dot replace 0 with it
+            if(lower.textContent === "0" && this.digit !== ".") {
+                lower.textContent = this.digit;
+                b.integerPart = this.digit;
+            } else {
+                if(this.digit !== ".") {
+                    // if there is the dot add to demicalPart else to integerPart
+                    if(lower.textContent.includes(".")) {
+                        b.decimalPart += this.digit;
+                    } else {
+                        b.integerPart += this.digit;
                     }
-                    lower.textContent += this.digit;
-                    lower.textContent;
                 }
+                lower.innerHTML += this.digit;
             }
         }
     }
@@ -139,11 +142,15 @@ function pressed() {
         if(operator) {
             let i = upper.querySelectorAll("i");
             if (i.length === 2) {
+                const iconFontSize = i[1].style.fontSize;
                 upper.removeChild(i[1]);
                 upper.insertAdjacentHTML("beforeend", this.content);
+                changeIconFontSize(upper, iconFontSize);
             } else {
+                const iconFontSize = i[0].style.fontSize;
                 upper.removeChild(i[0]);
                 upper.insertAdjacentHTML("beforeend", this.content);
+                changeIconFontSize(upper, iconFontSize);
             }
         } else {
             a.decimalPart = b.decimalPart;
@@ -164,30 +171,70 @@ function pressed() {
                 if (result < 0) {
                     lower.innerHTML = "";
                     lower.insertAdjacentHTML("afterbegin", minus);
-                    lower.innerHTML += -result
+                    lower.innerHTML += -result;
+
+                    changeIconFontSize(lower, `${standardIconFontSize}px`);
+                    lower.style.fontSize = `${maxFontSize}px`;
+
                     const { integerPart, decimalPart } = breakFloat(result);
-                    b.integerPart = integerPart;
-                    b.decimalPart = decimalPart;
+                    b.integerPart = integerPart.toString();
+                    b.decimalPart = decimalPart.toString();
                 } else {
                     lower.innerHTML = result;
-                    upper.innerHTML = "";
+                    
+                    lower.style.fontSize = `${maxFontSize}px`;
+
                     const { integerPart, decimalPart } = breakFloat(result);
-                    b.integerPart = integerPart;
-                    b.decimalPart = decimalPart;
+                    b.integerPart = integerPart.toString();
+                    b.decimalPart = decimalPart.toString();
                 }
                 upper.innerHTML = "";
+
+                upper.style.fontSize = `${maxFontSize}px`;
+
                 operator = undefined;
                 a.clearValue();
             }
         }
     }
+
+    adjustFontSize(upper);
+    let handled = adjustFontSize(lower);
+    if(!handled) {
+        alert("Apologies, we're unable to process such a large result. Data will be automatically cleared!");
+        a.clearValue();
+        upper.innerHTML = "";
+        b.clearValue();
+        lower.innerHTML = "0";
+        operator = undefined;
+        changeIconFontSize(lower, `${standardIconFontSize}px`);
+        lower.style.fontSize = `${maxFontSize}px`;
+    }
+}
+
+function changeIconFontSize(element, fontSize) {
+    const icons = element.getElementsByTagName('i');
+
+    for (let icon of icons) {
+        icon.style.fontSize = fontSize;
+    }
 }
 
 
-function breakFloat(floatNumber) {
-    const integerPart = Math.floor(floatNumber);
-    const decimalPart = floatNumber - integerPart;
-    return { integerPart, decimalPart };
+function breakFloat(input) {
+    const inputString = input.toString();
+    const parts = inputString.split('.');
+    let integerPart = parseInt(parts[0], 10);
+    let decimalPart = parseInt(parts[1], 10);
+
+    if(isNaN(decimalPart)) {
+        decimalPart = 0;
+    }
+  
+    return {
+      integerPart,
+      decimalPart
+    };
 }
   
 
@@ -228,9 +275,82 @@ function digitOrOperator(button) {
     }
 }
 
+
+function getElementTextWidth(el) {
+    const testDiv = document.createElement('div');
+    document.body.appendChild(testDiv);
+    testDiv.style.position = 'absolute';
+    testDiv.style.visibility = 'hidden';
+    testDiv.style.whiteSpace = 'nowrap';
+    testDiv.style.fontSize = getCssStyle(el, 'font-size');
+    testDiv.style.fontFamily = getCssStyle(el, 'font-family');
+    testDiv.style.fontWeight = getCssStyle(el, 'font-weight');
+    testDiv.textContent = el.textContent;
+    const width = testDiv.clientWidth;
+    document.body.removeChild(testDiv);
+    return width;
+}
+
+
+function getCssStyle(element, prop) {
+    return window.getComputedStyle(element, null).getPropertyValue(prop);
+}
+
+
+function adjustFontSize(displayElement) {
+    const parentStyle = window.getComputedStyle(displayElement.parentElement);
+    const parentPadding = parseInt(parentStyle.paddingLeft, 10) + parseInt(parentStyle.paddingRight, 10);
+    const parentWidth = displayElement.parentElement.offsetWidth - parentPadding - 35;
+
+    let contentWidth = getElementTextWidth(displayElement);
+    const icons = displayElement.getElementsByTagName('i');
+    for (let icon of icons) {
+        contentWidth += icon.offsetWidth;
+    }
+
+    let fontSize = parseInt(getCssStyle(displayElement, 'font-size'), 10);
+
+    while (contentWidth > parentWidth && fontSize > minFontSize) {
+        fontSize -= 2;
+        displayElement.style.fontSize = `${fontSize}px`;
+
+        let sumIconWidths = 0;
+        for(let icon of icons) {
+            let iconFontSize = parseInt(getCssStyle(icon, 'font-size'), 10);
+            iconFontSize -= 1;
+            icon.style.fontSize = `${iconFontSize}px`;
+            sumIconWidths += icon.offsetWidth;
+        }
+        contentWidth = getElementTextWidth(displayElement) + sumIconWidths;
+    }
+
+    while (contentWidth < parentWidth && fontSize < maxFontSize) {
+        fontSize += 2;
+        displayElement.style.fontSize = `${fontSize}px`;
+
+        let sumIconWidths = 0;
+        for(let icon of icons) {
+            let iconFontSize = parseInt(getCssStyle(icon, 'font-size'), 10);
+            iconFontSize += 1;
+            icon.style.fontSize = `${iconFontSize}px`;
+            sumIconWidths += icon.offsetWidth;
+        }
+        contentWidth = getElementTextWidth(displayElement) + sumIconWidths;
+    }
+
+    if (contentWidth > parentWidth + 40) {
+        return false
+    }
+    return true;
+}
+
 document.querySelector(".lower-half").textContent = "0";
 const buttons = document.querySelectorAll(".button");
 for(let button of buttons) {
     digitOrOperator(button);
     button.addEventListener("click", pressed);
-} 
+}
+
+var currentYear = new Date().getFullYear();
+
+document.querySelector(".footer").innerHTML += currentYear;
